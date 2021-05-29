@@ -8,6 +8,8 @@ package it.polito.tdp.PremierLeague;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import org.jgrapht.Graph;
+
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Model;
 import javafx.event.ActionEvent;
@@ -20,6 +22,7 @@ import javafx.scene.control.TextField;
 public class FXMLController {
 
 	private Model model;
+	private Graph grafo;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -37,7 +40,7 @@ public class FXMLController {
     private Button btnSimula; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbMatch"
-    private ComboBox<Match> cmbMatch; // Value injected by FXMLLoader
+    private ComboBox <Match> cmbMatch; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -47,16 +50,60 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	
+    	txtResult.clear();
+    	Match m = cmbMatch.getValue();
+    	if(m == null) {
+    		return;
+    	}else {
+    		grafo = model.creaGrafo(m);
+    		txtResult.appendText("Grafo creato");
+    		txtResult.appendText("Con vertici : " + model.nVertici() +  "\n");
+    		txtResult.appendText("Con archi : " + model.nArchi());
+    		
+    	}
     }
 
     @FXML
     void doGiocatoreMigliore(ActionEvent event) {    	
+    	txtResult.clear();
+    	//posso disabilitare il bottone se prima non creo il grafo
     	
+    	if(this.model.getGrafo() == null) {
+    		txtResult.appendText("Crea prima il grafo");
+    		return;
+    	}else {
+    		txtResult.appendText("Giocatore migliore: \n" + model.getMigliore());
+    	}
     }
     
     @FXML
     void doSimula(ActionEvent event) {
+    	txtResult.clear();
+    	int N;
+    	Match m = this.cmbMatch.getValue();
+    	
+    	if(this.model.getGrafo() == null) {
+    		txtResult.appendText("Crea prima il grafo");
+    		return;
+    	}
+    	
+    	if(this.model.getMigliore() == null) {
+        		txtResult.appendText("Trova prima il giocatore migliore");
+        		return;
+        }
+    	try {
+    		N = Integer.parseInt(this.txtN.getText());
+    		model.simula(m, N);
+    		txtResult.appendText("I goal fatti da squadra " + model.getSquadraBest()+" sono :" + model.getGolBest() + "\n");
+    		txtResult.appendText("I goal fatti da squadra " + model.getSquadraWorst()+" sono :" + model.getGolWorst() + "\n");
+    		txtResult.appendText("Gli espulsi della squadra 1 sono :" + model.getEspulsiBest() + "\n");
+    		txtResult.appendText("Gli espulsi della squadra 2 sono :" + model.getEspulsiWorst());
+    	
+    	}catch(NumberFormatException nfe) {
+    		txtResult.appendText("Inserire un numero intero nel campo N");
+    		return;
+    	}
+    	
 
     }
 
@@ -73,5 +120,7 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	this.cmbMatch.getItems().addAll(model.getTuttiIMatch());
     }
 }
